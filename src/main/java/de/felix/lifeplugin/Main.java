@@ -1,5 +1,6 @@
-package de.felix.lifeplugin;
+package de.felix.lifecore;
 
+import de.felix.lifecore.lang.LanguageManager;
 import org.bukkit.Bukkit;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
@@ -11,14 +12,18 @@ import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.plugin.java.JavaPlugin;
 
+import java.io.File;
+import java.util.HashMap;
 import java.util.UUID;
 
 public class Main extends JavaPlugin implements Listener {
 
     private static Main instance;
 
-    private Storage storage;
-    private GameModeType mode;
+    private LanguageManager languageManager;
+    private final HashMap<UUID, Integer> lives = new HashMap<>();
+
+    private String mode = "LIFESTEAL";
 
     @Override
     public void onEnable() {
@@ -27,119 +32,88 @@ public class Main extends JavaPlugin implements Listener {
 
         saveDefaultConfig();
 
-        // 🎮 Mode laden
-        String m = getConfig().getString("mode", "LIFESTEAL");
-        mode = GameModeType.valueOf(m.toUpperCase());
-
-        // 💾 Storage laden
-        String type = getConfig().getString("storage.type", "FILE");
-
-        if (type.equalsIgnoreCase("MYSQL")) {
-
-            MySQL mysql = new MySQL();
-
-            storage = new MySQLStorage(
-                    mysql.connect(
-                            getConfig().getString("mysql.host"),
-                            getConfig().getString("mysql.database"),
-                            getConfig().getString("mysql.user"),
-                            getConfig().getString("mysql.password")
-                    )
-            );
-
-        } else {
-            storage = new FileStorage(this);
-        }
+        // 🌍 Language System
+        languageManager = new LanguageManager();
+        languageManager.load(new File(getDataFolder(), "lang"));
 
         Bukkit.getPluginManager().registerEvents(this, this);
 
-        getLogger().info("LifePlugin gestartet | Mode: " + mode);
+        getLogger().info("LifeCore enabled!");
     }
 
     public static Main getInstance() {
         return instance;
     }
 
-    public GameModeType getMode() {
-        return mode;
-    }
-
-    public int getLives(UUID uuid) {
-        return storage.getLives(uuid);
-    }
-
-    // 🧍 Join
+    // 🧍 Player Join
     @EventHandler
     public void onJoin(PlayerJoinEvent e) {
 
         Player p = e.getPlayer();
 
-        storage.loadPlayer(p.getUniqueId());
+        lives.putIfAbsent(p.getUniqueId(), 10);
 
         updateActionBar(p);
     }
 
-    // 💀 Death
+    // 💀 Player Death
     @EventHandler
     public void onDeath(PlayerDeathEvent e) {
 
         Player p = e.getEntity();
 
-        // 🧛 Lifesteal
-        if (mode == GameModeType.LIFESTEAL) {
-            handleLifeSteal(p, e.getEntity().getKiller());
-        }
+        int current = lives.getOrDefault(p.getUniqueId(), 10);
+        current--;
 
-        int lives = storage.getLives(p.getUniqueId()) - 1;
+        lives.put(p.getUniqueId(), current);
 
-        storage.savePlayer(p.getUniqueId(), lives);
+        if (current <= 0) {
 
-        if (lives <= 0) {
-
-            if (mode == GameModeType.HARDCORE) {
-                p.kickPlayer("§cHardcore: keine Leben mehr!");
+            if (mode.equalsIgnoreCase("HARDCORE")) {
+                p.kickPlayer(languageManager.get(p.getUniqueId(), "no_lives"));
             } else {
-                p.sendMessage("§cDu hast keine Leben mehr!");
+                p.sendMessage(languageManager.get(p.getUniqueId(), "no_lives"));
             }
 
             return;
         }
 
+        Player killer = p.getKiller();
+
+        // 🧛 Lifesteal
+        if (killer != null && mode.equalsIgnoreCase("LIFESTEAL")) {
+
+            int steal = 1;
+
+            int killerLives = lives.getOrDefault(killer.getUniqueId(), 10);
+
+            lives.put(killer.getUniqueId(), killerLives + steal);
+
+            killer.sendMessage("§a+1 Life");
+        }
+
         Bukkit.getScheduler().runTaskLater(this, () -> updateActionBar(p), 10L);
-    }
-
-    // 🧛 Lifesteal
-    private void handleLifeSteal(Player dead, Player killer) {
-
-        if (killer == null) return;
-
-        int steal = getConfig().getInt("lifesteal.steal-amount", 1);
-        int max = getConfig().getInt("lifesteal.max-lives", 20);
-
-        int current = storage.getLives(killer.getUniqueId());
-
-        if (current >= max) return;
-
-        current += steal;
-
-        storage.savePlayer(killer.getUniqueId(), current);
-
-        killer.sendMessage("§a+1 Leben durch Kill!");
     }
 
     // 📊 ActionBar
     private void updateActionBar(Player p) {
 
-        int lives = storage.getLives(p.getUniqueId());
+        int l = lives.getOrDefault(p.getUniqueId(), 10);
 
-        ActionBarUtil.send(p, "§cLeben: §f" + lives + " §7| Mode: " + mode);
+        String msg = languageManager.format(
+                p.getUniqueId(),
+                "lives",
+                "lives", String.valueOf(l)
+        );
+
+        ActionBarUtil.send(p, msg);
     }
 
-    // 🚫 GUI Schutz (kein Item rausnehmen)
+    // 🚫 GUI Protection
     @EventHandler
-    public void onInventoryClick(InventoryClickEvent e) {
+    public void onInvClick(InventoryClickEvent e) {
 
-        if (e.getView().getTitle().equals("§cDeine Leben")) {
+        if (e.getView().getTitle().equals("§cLifeCore GUI")) {
             e.setCancelled(true);
         }
     }
@@ -150,23 +124,31 @@ public class Main extends JavaPlugin implements Listener {
 
         if (!(sender instanceof Player p)) return true;
 
-        if (cmd.getName().equalsIgnoreCase("livesgui")) {
-            LifeGUI.open(p);
+        // 🌍 Language Command
+        if (cmd.getName().equalsIgnoreCase("language")) {
+
+            if (args.length == 0) {
+                p.sendMessage("§cUse /language <de|en>");
+                return true;
+            }
+
+            languageManager.setLanguage(p.getUniqueId(), args[0]);
+
+            p.sendMessage("§aLanguage set to " + args[0]);
+
             return true;
         }
 
+        // ⚙ Mode Command (Admin)
         if (cmd.getName().equalsIgnoreCase("mode")) {
 
             if (!p.isOp()) return true;
 
             if (args.length == 0) return true;
 
-            mode = GameModeType.valueOf(args[0].toUpperCase());
+            mode = args[0].toUpperCase();
 
-            getConfig().set("mode", mode.toString());
-            saveConfig();
-
-            p.sendMessage("§aMode gesetzt: " + mode);
+            p.sendMessage("§aMode set to " + mode);
 
             return true;
         }
@@ -177,8 +159,6 @@ public class Main extends JavaPlugin implements Listener {
     @Override
     public void onDisable() {
 
-        for (Player p : Bukkit.getOnlinePlayers()) {
-            storage.savePlayer(p.getUniqueId(), storage.getLives(p.getUniqueId()));
-        }
+        getLogger().info("LifeCore disabled!");
     }
 }
