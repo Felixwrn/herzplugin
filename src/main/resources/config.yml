@@ -1,0 +1,10 @@
+storage: FILE
+mode: hardcore
+maxLives: 10
+defaultLives: 3
+
+mysql:
+  host: localhost
+  database: minecraft
+  user: root
+  password: pass

@@ -1,0 +1,8 @@
+name: LifePlugin
+version: 1.0
+main: de.felix.lifeplugin.Main
+api-version: 1.20
+
+commands:
+  setmode:
+    usage: /setmode <hardcore|lifesteal>
