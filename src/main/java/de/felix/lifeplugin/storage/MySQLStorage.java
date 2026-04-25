@@ -3,7 +3,7 @@ package de.felix.lifeplugin.storage;
 import java.sql.*;
 import java.util.UUID;
 
-public class MySQL implements Storage {
+public class MySQLStorage implements Storage {
 
     private Connection connection;
 
