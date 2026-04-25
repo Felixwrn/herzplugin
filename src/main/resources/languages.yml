@@ -1,0 +1,4 @@
+languages:
+  fr: "https://raw.githubusercontent.com/deinrepo/langs/fr.json"
+  es: "https://raw.githubusercontent.com/deinrepo/langs/es.json"
+  it: "https://raw.githubusercontent.com/deinrepo/langs/it.json"
