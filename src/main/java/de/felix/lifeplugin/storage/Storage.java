@@ -1,12 +1,12 @@
-package de.felix.lifeplugin;
+package de.felix.lifeplugin.storage;
 
 import java.util.UUID;
 
 public interface Storage {
 
-    void loadPlayer(UUID uuid);
-
-    void savePlayer(UUID uuid, int lives);
-
     int getLives(UUID uuid);
+
+    void setLives(UUID uuid, int lives);
+
+    void save(UUID uuid);
 }
