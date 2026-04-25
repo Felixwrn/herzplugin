@@ -1,4 +1,4 @@
-package de.felix.lifecore.commands;
+package de.felix.lifeplugin.commands;
 
 import de.felix.lifecore.lang.LanguageManager;
 import org.bukkit.command.Command;
