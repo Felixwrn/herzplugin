@@ -1,5 +1,6 @@
 package de.felix.lifeplugin;
 
+import de.felix.lifeplugin.gui.LanguageGUI;
 import de.felix.lifeplugin.gui.LifeGUI;
 import de.felix.lifeplugin.lang.LanguageManager;
 import de.felix.lifeplugin.storage.*;
@@ -40,7 +41,6 @@ public class Main extends JavaPlugin implements Listener {
         saveDefaultConfig();
         loadLangConfig();
 
-        // 🔥 Default Languages (de + en)
         copyDefaultLanguages();
 
         languageManager = new LanguageManager();
@@ -48,7 +48,6 @@ public class Main extends JavaPlugin implements Listener {
 
         mode = getConfig().getString("mode", "LIFESTEAL");
 
-        // Storage
         String type = getConfig().getString("storage.type");
 
         if ("MYSQL".equalsIgnoreCase(type)) {
@@ -78,7 +77,6 @@ public class Main extends JavaPlugin implements Listener {
         langConfig = YamlConfiguration.loadConfiguration(langConfigFile);
     }
 
-    // 🔥 Kopiert de + en automatisch
     private void copyDefaultLanguages() {
 
         File langFolder = new File(getDataFolder(), "lang");
@@ -90,9 +88,7 @@ public class Main extends JavaPlugin implements Listener {
         String[] defaults = {"de.json", "en.json"};
 
         for (String file : defaults) {
-
             File target = new File(langFolder, file);
-
             if (!target.exists()) {
                 saveResource("lang/" + file, false);
             }
@@ -105,6 +101,10 @@ public class Main extends JavaPlugin implements Listener {
 
     public LanguageManager getLanguageManager() {
         return languageManager;
+    }
+
+    public YamlConfiguration getLangConfig() {
+        return langConfig;
     }
 
     public int getLives(UUID uuid) {
@@ -163,15 +163,52 @@ public class Main extends JavaPlugin implements Listener {
         p.sendActionBar(msg);
     }
 
-    // GUI Block
+    // GUI BLOCK
     @EventHandler
     public void onClick(InventoryClickEvent e) {
-        if (e.getView().getTitle().equals(LifeGUI.getTitle())) e.setCancelled(true);
+
+        if (!(e.getWhoClicked() instanceof Player p)) return;
+
+        // LifeGUI
+        if (e.getView().getTitle().equals(LifeGUI.getTitle(p))) {
+            e.setCancelled(true);
+            return;
+        }
+
+        // LanguageGUI
+        if (e.getView().getTitle().equals(LanguageGUI.getTitle())) {
+
+            e.setCancelled(true);
+
+            if (e.getCurrentItem() == null || e.getCurrentItem().getItemMeta() == null) return;
+
+            String lang = e.getCurrentItem().getItemMeta().getDisplayName().replace("§e", "").toLowerCase();
+
+            File file = new File(getDataFolder(), "lang/" + lang + ".json");
+
+            if (file.exists()) {
+                languageManager.setLanguage(p.getUniqueId(), lang);
+                p.sendMessage("§aLanguage set to " + lang);
+            } else {
+                downloadLanguage(lang, p);
+            }
+
+            p.closeInventory();
+        }
     }
 
     @EventHandler
     public void onDrag(InventoryDragEvent e) {
-        if (e.getView().getTitle().equals(LifeGUI.getTitle())) e.setCancelled(true);
+
+        if (!(e.getWhoClicked() instanceof Player p)) return;
+
+        if (e.getView().getTitle().equals(LifeGUI.getTitle(p))) {
+            e.setCancelled(true);
+        }
+
+        if (e.getView().getTitle().equals(LanguageGUI.getTitle())) {
+            e.setCancelled(true);
+        }
     }
 
     // COMMANDS
@@ -183,14 +220,12 @@ public class Main extends JavaPlugin implements Listener {
         // LANGUAGE
         if (cmd.getName().equalsIgnoreCase("language")) {
 
-            // Download
             if (args.length == 2 && args[0].equalsIgnoreCase("download")) {
 
                 String lang = args[1].toLowerCase();
 
-                // ❌ block default languages
                 if (lang.equals("de") || lang.equals("en")) {
-                    p.sendMessage("§cThis language is already installed!");
+                    p.sendMessage("§cAlready installed!");
                     return true;
                 }
 
@@ -198,7 +233,6 @@ public class Main extends JavaPlugin implements Listener {
                 return true;
             }
 
-            // Set
             if (args.length == 1) {
                 languageManager.setLanguage(p.getUniqueId(), args[0]);
                 p.sendMessage("§aLanguage set to " + args[0]);
@@ -235,10 +269,15 @@ public class Main extends JavaPlugin implements Listener {
             return true;
         }
 
+        if (cmd.getName().equalsIgnoreCase("langgui")) {
+            LanguageGUI.open(p);
+            return true;
+        }
+
         return false;
     }
 
-    // DOWNLOAD SYSTEM
+    // DOWNLOAD
     private void downloadLanguage(String lang, Player p) {
 
         getServer().getScheduler().runTaskAsynchronously(this, () -> {
