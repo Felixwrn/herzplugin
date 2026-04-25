@@ -1,4 +1,4 @@
 languages:
-  fr: "https://raw.githubusercontent.com/deinrepo/langs/fr.json"
-  es: "https://raw.githubusercontent.com/deinrepo/langs/es.json"
-  it: "https://raw.githubusercontent.com/deinrepo/langs/it.json"
+  fr: "https://github.com/Felixwrn/langues/releases/download/fr/fr.json"
+  es: "https://github.com/Felixwrn/langues/releases/download/es/es.json"
+  it: "https://github.com/Felixwrn/langues/releases/download/it/it.json"
