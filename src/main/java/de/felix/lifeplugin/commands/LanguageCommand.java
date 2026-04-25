@@ -1,6 +1,6 @@
 package de.felix.lifeplugin.commands;
 
-import de.felix.lifeplguin.lang.LanguageManager;
+import de.felix.lifeplugin.lang.LanguageManager;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
