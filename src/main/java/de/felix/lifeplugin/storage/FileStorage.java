@@ -1,45 +1,37 @@
-package de.felix.lifeplugin;
+package de.felix.lifeplugin.storage;
 
+import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.UUID;
 
 public class FileStorage implements Storage {
 
-    private final Main plugin;
     private final File file;
-    private final YamlConfiguration cfg;
+    private final FileConfiguration config;
 
-    public FileStorage(Main plugin) {
-        this.plugin = plugin;
-        this.file = new File(plugin.getDataFolder(), "data.yml");
-        this.cfg = YamlConfiguration.loadConfiguration(file);
-    }
-
-    @Override
-    public void loadPlayer(UUID uuid) {
-        if (!cfg.contains(uuid.toString())) {
-            cfg.set(uuid.toString(), 10);
-            saveFile();
-        }
-    }
-
-    @Override
-    public void savePlayer(UUID uuid, int lives) {
-        cfg.set(uuid.toString(), lives);
-        saveFile();
+    public FileStorage(File folder) {
+        this.file = new File(folder, "lives.yml");
+        this.config = YamlConfiguration.loadConfiguration(file);
     }
 
     @Override
     public int getLives(UUID uuid) {
-        return cfg.getInt(uuid.toString(), 10);
+        return config.getInt(uuid.toString(), 10);
     }
 
-    private void saveFile() {
+    @Override
+    public void setLives(UUID uuid, int lives) {
+        config.set(uuid.toString(), lives);
+    }
+
+    @Override
+    public void save(UUID uuid) {
         try {
-            cfg.save(file);
-        } catch (Exception e) {
+            config.save(file);
+        } catch (IOException e) {
             e.printStackTrace();
         }
     }
