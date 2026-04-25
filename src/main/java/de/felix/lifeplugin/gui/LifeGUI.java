@@ -12,15 +12,16 @@ import java.util.List;
 
 public class LifeGUI {
 
-    private static final String TITLE = "§cDein Leben Menü";
-
-    public static String getTitle() {
-        return TITLE;
+    // 🔥 Titel jetzt dynamisch
+    public static String getTitle(Player p) {
+        return Main.getInstance()
+                .getLanguageManager()
+                .get(p.getUniqueId(), "gui_life_title");
     }
 
     public static void open(Player p) {
 
-        Inventory inv = Bukkit.createInventory(null, 27, TITLE);
+        Inventory inv = Bukkit.createInventory(null, 27, getTitle(p));
 
         int lives = Main.getInstance().getLives(p.getUniqueId());
 
@@ -29,14 +30,14 @@ public class LifeGUI {
 
         if (meta == null) return;
 
-        // 🌍 Name aus LanguageSystem
+        // 🌍 Name übersetzt
         meta.setDisplayName(
                 Main.getInstance()
                         .getLanguageManager()
                         .get(p.getUniqueId(), "gui_lives_title")
         );
 
-        // 🌍 Lore aus LanguageSystem
+        // 🌍 Lore übersetzt
         meta.setLore(List.of(
                 Main.getInstance()
                         .getLanguageManager()
