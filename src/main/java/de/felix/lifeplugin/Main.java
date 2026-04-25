@@ -1,6 +1,6 @@
 package de.felix.lifeplugin;
 
-import de.felix.lifecore.lang.LanguageManager;
+import de.felix.lifeplugin.lang.LanguageManager;
 import org.bukkit.Bukkit;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
