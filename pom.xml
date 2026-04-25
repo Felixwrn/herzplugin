@@ -11,7 +11,7 @@
 
     <name>LifePlugin</name>
 
-    <!-- 🔧 Java Version (WICHTIG für 1.21.x) -->
+    <!-- ☕ Java 21 für Minecraft 1.21.x -->
     <properties>
         <java.version>21</java.version>
         <maven.compiler.source>21</maven.compiler.source>
@@ -21,10 +21,16 @@
     <!-- 📡 Repositories -->
     <repositories>
 
-        <!-- PaperMC Repo -->
+        <!-- PaperMC -->
         <repository>
             <id>papermc</id>
             <url>https://repo.papermc.io/repository/maven-public/</url>
+        </repository>
+
+        <!-- Optional: Spigot fallback -->
+        <repository>
+            <id>spigot-repo</id>
+            <url>https://hub.spigotmc.org/nexus/content/repositories/snapshots/</url>
         </repository>
 
     </repositories>
@@ -32,7 +38,7 @@
     <!-- 📦 Dependencies -->
     <dependencies>
 
-        <!-- Paper API 1.21.x -->
+        <!-- 🧱 Paper API 1.21.x -->
         <dependency>
             <groupId>io.papermc.paper</groupId>
             <artifactId>paper-api</artifactId>
@@ -40,12 +46,21 @@
             <scope>provided</scope>
         </dependency>
 
+        <!-- 🗄️ MySQL Connector -->
+        <dependency>
+            <groupId>com.mysql</groupId>
+            <artifactId>mysql-connector-j</artifactId>
+            <version>8.3.0</version>
+        </dependency>
+
     </dependencies>
 
-    <!-- ⚙️ Compiler Plugin -->
+    <!-- ⚙️ Build System -->
     <build>
+
         <plugins>
 
+            <!-- 🔧 Compiler -->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
@@ -57,7 +72,25 @@
                 </configuration>
             </plugin>
 
+            <!-- 📦 Shade Plugin (optional für später CoreAPI / Libraries) -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-shade-plugin</artifactId>
+                <version>3.5.0</version>
+
+                <executions>
+                    <execution>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>shade</goal>
+                        </goals>
+                    </execution>
+                </executions>
+
+            </plugin>
+
         </plugins>
+
     </build>
 
 </project>
