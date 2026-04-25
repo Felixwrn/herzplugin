@@ -3,7 +3,7 @@ package de.felix.lifeplugin;
 import de.felix.lifeplugin.gui.LifeGUI;
 import de.felix.lifeplugin.lang.LanguageManager;
 import de.felix.lifeplugin.storage.FileStorage;
-import de.felix.lifeplugin.storage.MySQL;
+import de.felix.lifeplugin.storage.MySQLStorage;
 import de.felix.lifeplugin.storage.Storage;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
