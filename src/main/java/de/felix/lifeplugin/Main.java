@@ -1,4 +1,4 @@
-package de.felix.lifecore;
+package de.felix.lifeplugin;
 
 import de.felix.lifecore.lang.LanguageManager;
 import org.bukkit.Bukkit;
