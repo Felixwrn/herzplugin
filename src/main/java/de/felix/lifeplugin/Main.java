@@ -3,6 +3,7 @@ package de.felix.lifeplugin;
 import de.felix.lifeplugin.gui.LifeGUI;
 import de.felix.lifeplugin.lang.LanguageManager;
 import de.felix.lifeplugin.storage.FileStorage;
+import de.felix.lifeplugin.storage.MySQL;
 import de.felix.lifeplugin.storage.Storage;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
@@ -26,9 +27,9 @@ public class Main extends JavaPlugin implements Listener {
     private LanguageManager languageManager;
     private final HashMap<UUID, Integer> lives = new HashMap<>();
 
-    private Storage storage; // 🔥 STORAGE
+    private Storage storage;
 
-    private String mode = "LIFESTEAL";
+    private String mode;
 
     @Override
     public void onEnable() {
@@ -41,8 +42,29 @@ public class Main extends JavaPlugin implements Listener {
         languageManager = new LanguageManager();
         languageManager.load(new File(getDataFolder(), "lang"));
 
-        // 💾 Storage aktivieren
-        storage = new FileStorage(getDataFolder());
+        // ⚙ Mode aus config
+        mode = getConfig().getString("mode", "LIFESTEAL");
+
+        // 💾 Storage Auswahl
+        String type = getConfig().getString("storage.type");
+
+        if (type != null && type.equalsIgnoreCase("MYSQL")) {
+
+            storage = new MySQL(
+                    getConfig().getString("mysql.host"),
+                    getConfig().getInt("mysql.port"),
+                    getConfig().getString("mysql.database"),
+                    getConfig().getString("mysql.user"),
+                    getConfig().getString("mysql.password")
+            );
+
+            getLogger().info("Using MySQL Storage");
+
+        } else {
+
+            storage = new FileStorage(getDataFolder());
+            getLogger().info("Using File Storage");
+        }
 
         getServer().getPluginManager().registerEvents(this, this);
 
@@ -57,15 +79,16 @@ public class Main extends JavaPlugin implements Listener {
         return languageManager;
     }
 
+    // ❤️ Lives (mit config fallback)
     public int getLives(UUID uuid) {
-        return lives.getOrDefault(uuid, 10);
+        return lives.getOrDefault(uuid, getConfig().getInt("start-lives", 10));
     }
 
     public void setMode(String mode) {
         this.mode = mode;
     }
 
-    // 🧍 JOIN → lädt aus Speicher
+    // 🧍 JOIN → lädt aus Storage
     @EventHandler
     public void onJoin(PlayerJoinEvent e) {
 
@@ -78,7 +101,7 @@ public class Main extends JavaPlugin implements Listener {
         updateActionBar(p);
     }
 
-    // 💀 DEATH → speichert
+    // 💀 DEATH
     @EventHandler
     public void onDeath(PlayerDeathEvent e) {
 
@@ -95,8 +118,16 @@ public class Main extends JavaPlugin implements Listener {
 
             lives.remove(p.getUniqueId());
 
+            boolean ban = getConfig().getBoolean("hardcore.ban-on-zero", false);
+
             if (mode.equalsIgnoreCase("HARDCORE")) {
-                p.kickPlayer(languageManager.get(p.getUniqueId(), "no_lives"));
+
+                if (ban) {
+                    p.banPlayer(languageManager.get(p.getUniqueId(), "no_lives"));
+                } else {
+                    p.kickPlayer(languageManager.get(p.getUniqueId(), "no_lives"));
+                }
+
             } else {
                 p.sendMessage(languageManager.get(p.getUniqueId(), "no_lives"));
             }
@@ -109,14 +140,17 @@ public class Main extends JavaPlugin implements Listener {
         // 🧛 Lifesteal
         if (killer != null && mode.equalsIgnoreCase("LIFESTEAL")) {
 
-            int killerLives = getLives(killer.getUniqueId()) + 1;
+            int steal = getConfig().getInt("lifesteal.steal-amount", 1);
+            int max = getConfig().getInt("lifesteal.max-lives", 20);
+
+            int killerLives = Math.min(getLives(killer.getUniqueId()) + steal, max);
 
             lives.put(killer.getUniqueId(), killerLives);
 
             storage.setLives(killer.getUniqueId(), killerLives);
             storage.save(killer.getUniqueId());
 
-            killer.sendMessage("§a+1 Life");
+            killer.sendMessage("§a+" + steal + " Life");
         }
 
         getServer().getScheduler().runTaskLater(this, () -> updateActionBar(p), 10L);
@@ -136,7 +170,7 @@ public class Main extends JavaPlugin implements Listener {
         p.sendActionBar(msg);
     }
 
-    // 🚫 GUI Protection
+    // 🚫 GUI Schutz
     @EventHandler
     public void onInvClick(InventoryClickEvent e) {
 
@@ -173,7 +207,7 @@ public class Main extends JavaPlugin implements Listener {
             return true;
         }
 
-        // ⚙ Mode
+        // ⚙ Mode (nur 2 erlaubt)
         if (cmd.getName().equalsIgnoreCase("mode")) {
 
             if (!p.isOp()) return true;
