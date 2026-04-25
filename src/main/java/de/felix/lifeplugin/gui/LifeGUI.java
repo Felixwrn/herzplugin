@@ -1,4 +1,4 @@
-package de.felix.lifeplugin;
+package de.felix.lifeplugin.gui;
 
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
