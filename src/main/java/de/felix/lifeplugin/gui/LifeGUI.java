@@ -1,6 +1,7 @@
 package de.felix.lifeplugin.gui;
 
 import de.felix.lifeplugin.Main;
+import de.felix.lifeplugin.lang.LanguageManager;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
@@ -12,11 +13,14 @@ import java.util.List;
 
 public class LifeGUI {
 
-    private static final String TITLE = "§cDeine Leben";
+    public static String getTitle(Player p) {
+        return Main.getInstance().getLanguageManager()
+                .get(p.getUniqueId(), "gui_title");
+    }
 
     public static void open(Player p) {
 
-        Inventory inv = Bukkit.createInventory(null, 27, TITLE);
+        Inventory inv = Bukkit.createInventory(null, 27, getTitle(p));
 
         int lives = Main.getInstance().getLives(p.getUniqueId());
 
@@ -25,10 +29,14 @@ public class LifeGUI {
 
         if (meta == null) return;
 
-        meta.setDisplayName("§cLeben");
+        meta.setDisplayName(
+                Main.getInstance().getLanguageManager()
+                        .get(p.getUniqueId(), "gui_lives_title")
+        );
 
         meta.setLore(List.of(
-                "§7Aktuell:",
+                "§7" + Main.getInstance().getLanguageManager()
+                        .get(p.getUniqueId(), "gui_current"),
                 "§a" + lives
         ));
 
@@ -37,9 +45,5 @@ public class LifeGUI {
         inv.setItem(13, heart);
 
         p.openInventory(inv);
-    }
-
-    public static String getTitle() {
-        return TITLE;
     }
 }
