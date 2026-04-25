@@ -41,17 +41,18 @@ public class Main extends JavaPlugin implements Listener {
         getLogger().info("LifePlugin enabled!");
     }
 
+    // 📌 INSTANCE
     public static Main getInstance() {
         return instance;
     }
 
-    // 📦 LIVES
+    // 📌 LIVES
     public int getLives(UUID uuid) {
         return lives.getOrDefault(uuid, 10);
     }
 
-    public void setMode(String newMode) {
-        this.mode = newMode;
+    public void setMode(String mode) {
+        this.mode = mode;
     }
 
     public String getMode() {
@@ -107,7 +108,7 @@ public class Main extends JavaPlugin implements Listener {
         getServer().getScheduler().runTaskLater(this, () -> updateActionBar(p), 10L);
     }
 
-    // 📊 ACTIONBAR
+    // 📊 ACTIONBAR (HIER IST DEIN FIX)
     private void updateActionBar(Player p) {
 
         int l = getLives(p.getUniqueId());
@@ -154,12 +155,13 @@ public class Main extends JavaPlugin implements Listener {
             }
 
             languageManager.setLanguage(p.getUniqueId(), args[0]);
+
             p.sendMessage("§aLanguage set to " + args[0]);
 
             return true;
         }
 
-        // ⚙ MODE (nur hardcore / lifesteal)
+        // ⚙ MODE
         if (cmd.getName().equalsIgnoreCase("mode")) {
 
             if (!p.isOp()) return true;
@@ -183,7 +185,7 @@ public class Main extends JavaPlugin implements Listener {
 
             } else {
 
-                p.sendMessage("§cOnly: hardcore or lifesteal allowed!");
+                p.sendMessage("§cOnly hardcore or lifesteal allowed!");
             }
 
             return true;
