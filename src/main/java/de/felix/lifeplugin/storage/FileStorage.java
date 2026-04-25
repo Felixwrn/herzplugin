@@ -13,7 +13,18 @@ public class FileStorage implements Storage {
     private final FileConfiguration config;
 
     public FileStorage(File folder) {
+
         this.file = new File(folder, "lives.yml");
+
+        if (!file.exists()) {
+            try {
+                folder.mkdirs();
+                file.createNewFile();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+
         this.config = YamlConfiguration.loadConfiguration(file);
     }
 
