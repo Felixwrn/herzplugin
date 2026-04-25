@@ -22,7 +22,6 @@ public class LanguageManager {
         if (!folder.exists()) folder.mkdirs();
 
         File[] files = folder.listFiles();
-
         if (files == null) return;
 
         Type type = new TypeToken<HashMap<String, String>>() {}.getType();
@@ -31,17 +30,17 @@ public class LanguageManager {
 
             if (!file.getName().endsWith(".json")) continue;
 
-            try {
+            try (FileReader reader = new FileReader(file)) {
 
                 String name = file.getName().replace(".json", "");
 
-                FileReader reader = new FileReader(file);
-
                 HashMap<String, String> map = gson.fromJson(reader, type);
 
-                languages.put(name, map);
+                if (map == null) {
+                    map = new HashMap<>();
+                }
 
-                reader.close();
+                languages.put(name, map);
 
             } catch (Exception e) {
                 e.printStackTrace();
@@ -66,9 +65,16 @@ public class LanguageManager {
 
         HashMap<String, String> map = languages.get(lang);
 
-        if (map == null) return key;
+        // fallback to German
+        if (map == null) {
+            map = languages.get("de");
+        }
 
-        return map.getOrDefault(key, key);
+        if (map == null) {
+            return "§c[Missing Lang System]";
+        }
+
+        return map.getOrDefault(key, "§c[Missing: " + key + "]");
     }
 
     // 🔧 Placeholder support
@@ -76,7 +82,7 @@ public class LanguageManager {
 
         String msg = get(uuid, key);
 
-        for (int i = 0; i < placeholders.length; i += 2) {
+        for (int i = 0; i < placeholders.length - 1; i += 2) {
             msg = msg.replace("%" + placeholders[i] + "%", placeholders[i + 1]);
         }
 
