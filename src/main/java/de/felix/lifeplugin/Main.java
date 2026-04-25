@@ -50,7 +50,7 @@ public class Main extends JavaPlugin implements Listener {
 
         if (type != null && type.equalsIgnoreCase("MYSQL")) {
 
-            storage = new MySQL(
+            storage = new MySQLStorage(
                     getConfig().getString("mysql.host"),
                     getConfig().getInt("mysql.port"),
                     getConfig().getString("mysql.database"),
