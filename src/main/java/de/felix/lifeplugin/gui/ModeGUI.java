@@ -1,7 +1,8 @@
 package de.felix.lifeplugin.gui;
 
 import de.felix.lifeplugin.Main;
-import org.bukkit.*;
+import org.bukkit.Bukkit;
+import org.bukkit.Material;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.*;
@@ -11,91 +12,74 @@ import java.util.List;
 
 public class ModeGUI {
 
-    private static final String TITLE = "§6§lMode Selector";
-
-    public static String getTitle() {
-        return TITLE;
+    public static String getTitle(Player p) {
+        return Main.getInstance().getLanguageManager()
+                .get(p.getUniqueId(), "modegui_title");
     }
 
     public static void open(Player p) {
 
-        Inventory inv = Bukkit.createInventory(null, 27, TITLE);
+        var lm = Main.getInstance().getLanguageManager();
+        var uuid = p.getUniqueId();
+
+        Inventory inv = Bukkit.createInventory(null, 27, getTitle(p));
 
         String current = Main.getInstance().getConfig().getString("mode", "LIFESTEAL");
 
-        // 🟪 Rahmen (moderner Look)
-        ItemStack filler = new ItemStack(Material.BLACK_STAINED_GLASS_PANE);
-        ItemMeta fMeta = filler.getItemMeta();
-        if (fMeta != null) {
-            fMeta.setDisplayName(" ");
-            filler.setItemMeta(fMeta);
-        }
-
-        for (int i = 0; i < 27; i++) {
-            if (i < 9 || i > 17 || i % 9 == 0 || i % 9 == 8) {
-                inv.setItem(i, filler);
-            }
-        }
-
-        // ❤️ HARDCORE
-        boolean hardcoreCurrent = current.equalsIgnoreCase("HARDCORE");
+        // Hardcore
+        boolean hc = current.equalsIgnoreCase("HARDCORE");
 
         ItemStack hardcore = new ItemStack(Material.REDSTONE_BLOCK);
-        ItemMeta hMeta = hardcore.getItemMeta();
+        ItemMeta h = hardcore.getItemMeta();
 
-        if (hMeta != null) {
+        if (h != null) {
 
-            hMeta.setDisplayName(
-                    hardcoreCurrent
-                            ? "§6★ §c§lHardcore"
-                            : "§c§lHardcore"
+            h.setDisplayName(
+                    hc
+                            ? "§6★ " + lm.get(uuid, "mode_hardcore")
+                            : lm.get(uuid, "mode_hardcore")
             );
 
-            if (hardcoreCurrent) {
-                hMeta.addEnchant(Enchantment.UNBREAKING, 1, true);
-                hMeta.addItemFlags(ItemFlag.HIDE_ENCHANTS);
+            if (hc) {
+                h.addEnchant(Enchantment.UNBREAKING, 1, true);
+                h.addItemFlags(ItemFlag.HIDE_ENCHANTS);
             }
 
-            hMeta.setLore(List.of(
-                    "§7Lose lives permanently",
-                    "§7Kick or ban on 0 lives",
-                    "",
-                    hardcoreCurrent
-                            ? "§a✔ Currently active"
-                            : "§eClick to activate"
+            h.setLore(List.of(
+                    hc
+                            ? lm.get(uuid, "mode_selected")
+                            : lm.get(uuid, "mode_click")
             ));
 
-            hardcore.setItemMeta(hMeta);
+            hardcore.setItemMeta(h);
         }
 
-        // 💚 LIFESTEAL
-        boolean lifestealCurrent = current.equalsIgnoreCase("LIFESTEAL");
+        // Lifesteal
+        boolean ls = current.equalsIgnoreCase("LIFESTEAL");
 
         ItemStack lifesteal = new ItemStack(Material.HEART_OF_THE_SEA);
-        ItemMeta lMeta = lifesteal.getItemMeta();
+        ItemMeta l = lifesteal.getItemMeta();
 
-        if (lMeta != null) {
+        if (l != null) {
 
-            lMeta.setDisplayName(
-                    lifestealCurrent
-                            ? "§6★ §a§lLifesteal"
-                            : "§a§lLifesteal"
+            l.setDisplayName(
+                    ls
+                            ? "§6★ " + lm.get(uuid, "mode_lifesteal")
+                            : lm.get(uuid, "mode_lifesteal")
             );
 
-            if (lifestealCurrent) {
-                lMeta.addEnchant(Enchantment.UNBREAKING, 1, true);
-                lMeta.addItemFlags(ItemFlag.HIDE_ENCHANTS);
+            if (ls) {
+                l.addEnchant(Enchantment.UNBREAKING, 1, true);
+                l.addItemFlags(ItemFlag.HIDE_ENCHANTS);
             }
 
-            lMeta.setLore(List.of(
-                    "§7Steal lives from players",
-                    "",
-                    lifestealCurrent
-                            ? "§a✔ Currently active"
-                            : "§eClick to activate"
+            l.setLore(List.of(
+                    ls
+                            ? lm.get(uuid, "mode_selected")
+                            : lm.get(uuid, "mode_click")
             ));
 
-            lifesteal.setItemMeta(lMeta);
+            lifesteal.setItemMeta(l);
         }
 
         inv.setItem(11, hardcore);
