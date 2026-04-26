@@ -18,6 +18,9 @@ commands:
   livesgui:
     description: Open lives GUI
     aliases: [lives, leben]
+  mode:
+    description: Change game mode
+    usage: /mode <hardcore|lifesteal>
 
 permissions:
   lifeplugin.admin:
