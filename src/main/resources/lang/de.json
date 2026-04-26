@@ -1,4 +1,12 @@
 {
+  "death": "§cDu bist gestorben",
+  "lives": "§cLeben: §f%lives%",
+  "no_lives": "§cDu hast keine Leben mehr!",
+
+  "gui_life_title": "§cLeben Menü",
+  "gui_lives_title": "§cLeben",
+  "gui_current": "Aktuell:",
+
   "langgui_title": "§6§lSprachauswahl",
   "langgui_next": "§aWeiter →",
   "langgui_previous": "§c← Zurück",
