@@ -2,9 +2,13 @@ package de.felix.lifeplugin;
 
 import de.felix.lifeplugin.gui.LanguageGUI;
 import de.felix.lifeplugin.gui.LifeGUI;
+import de.felix.lifeplugin.gui.ModeBuilderGUI;
 import de.felix.lifeplugin.gui.ModeGUI;
+import de.felix.lifeplugin.gui.MarketplaceGUI;
 import de.felix.lifeplugin.lang.LanguageManager;
 import de.felix.lifeplugin.storage.*;
+import de.felix.lifeplugin.util.ChatInput;
+
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.Sound;
@@ -66,12 +70,20 @@ public class Main extends JavaPlugin implements Listener, TabExecutor {
         }
 
         getServer().getPluginManager().registerEvents(this, this);
+        getServer().getPluginManager().registerEvents(new ChatInput(), this);
 
         getCommand("mode").setExecutor(this);
         getCommand("mode").setTabCompleter(this);
 
+        // 🔥 Daily Marketplace Update
+        Bukkit.getScheduler().runTaskTimer(this, () -> {
+            MarketplaceGUI.reload();
+        }, getTicksUntilMidnight(), 20L * 60 * 60 * 24);
+
         getLogger().info("LifePlugin enabled!");
     }
+
+    // ---------------- LANGUAGE ----------------
 
     private void loadLangConfig() {
         langConfigFile = new File(getDataFolder(), "languages.yml");
@@ -86,9 +98,7 @@ public class Main extends JavaPlugin implements Listener, TabExecutor {
     private void copyDefaultLanguages() {
         File langFolder = new File(getDataFolder(), "lang");
 
-        if (!langFolder.exists()) {
-            langFolder.mkdirs();
-        }
+        if (!langFolder.exists()) langFolder.mkdirs();
 
         String[] defaults = {"de.json", "en.json"};
 
@@ -116,7 +126,8 @@ public class Main extends JavaPlugin implements Listener, TabExecutor {
         return lives.getOrDefault(uuid, getConfig().getInt("start-lives", 10));
     }
 
-    // JOIN
+    // ---------------- EVENTS ----------------
+
     @EventHandler
     public void onJoin(PlayerJoinEvent e) {
         Player p = e.getPlayer();
@@ -127,7 +138,6 @@ public class Main extends JavaPlugin implements Listener, TabExecutor {
         updateActionBar(p);
     }
 
-    // DEATH
     @EventHandler
     public void onDeath(PlayerDeathEvent e) {
 
@@ -168,79 +178,63 @@ public class Main extends JavaPlugin implements Listener, TabExecutor {
         p.sendActionBar(msg);
     }
 
-    // GUI EVENTS
+    // ---------------- GUI ----------------
+
     @EventHandler
     public void onClick(InventoryClickEvent e) {
 
         if (!(e.getWhoClicked() instanceof Player p)) return;
 
-        // LifeGUI
-        if (e.getView().getTitle().equals(LifeGUI.getTitle(p))) {
+        // Mode Builder
+        if (e.getView().getTitle().startsWith("§6Mode Builder:")) {
             e.setCancelled(true);
+            ModeBuilderGUI.click(p, e.getSlot());
             return;
         }
 
-        // LanguageGUI
-        if (e.getView().getTitle().equals(LanguageGUI.getTitle(p))) {
+        // Marketplace
+        if (e.getView().getTitle().equals("§6Marketplace")) {
 
             e.setCancelled(true);
 
             if (e.getCurrentItem() == null || e.getCurrentItem().getItemMeta() == null) return;
 
-            String name = e.getCurrentItem().getItemMeta().getDisplayName();
+            String name = e.getCurrentItem().getItemMeta().getDisplayName().replace("§e", "");
 
-            if (name.contains("Next") || name.contains("Weiter")) {
-                LanguageGUI.open(p, LanguageGUI.getPage(p.getUniqueId()) + 1);
-                return;
-            }
+            var obj = MarketplaceGUI.get(name);
+            if (obj == null) return;
 
-            if (name.contains("Previous") || name.contains("Zurück")) {
-                LanguageGUI.open(p, LanguageGUI.getPage(p.getUniqueId()) - 1);
-                return;
-            }
-
-            String lang = name.replace("§6★ ", "").replace("§f§l", "").toLowerCase();
-
-            File file = new File(getDataFolder(), "lang/" + lang + ".json");
-
-            if (file.exists()) {
-                languageManager.setLanguage(p.getUniqueId(), lang);
-                p.sendMessage("§aLanguage set to " + lang);
-            } else {
-                downloadLanguage(lang, p);
-            }
-
-            p.closeInventory();
+            downloadMode(name, obj.getString("url"), p);
         }
 
-        // ModeGUI
-        if (e.getView().getTitle().equals(ModeGUI.getTitle(p))) {
+        // Life GUI
+        if (e.getView().getTitle().equals(LifeGUI.getTitle(p))) {
+            e.setCancelled(true);
+        }
 
+        // Language GUI
+        if (e.getView().getTitle().equals(LanguageGUI.getTitle(p))) {
+            e.setCancelled(true);
+        }
+
+        // Mode GUI
+        if (e.getView().getTitle().equals(ModeGUI.getTitle(p))) {
             e.setCancelled(true);
 
             if (e.getCurrentItem() == null) return;
 
             Material mat = e.getCurrentItem().getType();
 
-            String newMode;
-
             if (mat == Material.REDSTONE_BLOCK) {
-                newMode = "HARDCORE";
+                mode = "HARDCORE";
             } else if (mat == Material.HEART_OF_THE_SEA) {
-                newMode = "LIFESTEAL";
-            } else {
-                return;
-            }
-
-            mode = newMode;
+                mode = "LIFESTEAL";
+            } else return;
 
             getConfig().set("mode", mode);
             saveConfig();
 
             p.playSound(p.getLocation(), Sound.UI_BUTTON_CLICK, 1, 1);
-
-            Bukkit.getScheduler().runTaskLater(this, () -> ModeGUI.open(p), 5L);
-
             p.sendMessage("§aMode set to " + mode);
         }
     }
@@ -255,90 +249,26 @@ public class Main extends JavaPlugin implements Listener, TabExecutor {
         if (e.getView().getTitle().equals(ModeGUI.getTitle(p))) e.setCancelled(true);
     }
 
-    // COMMANDS
+    // ---------------- COMMANDS ----------------
+
     @Override
     public boolean onCommand(CommandSender sender, Command cmd, String label, String[] args) {
 
         if (!(sender instanceof Player p)) return true;
 
-        // ADMIN LIFE COMMAND
-        if (cmd.getName().equalsIgnoreCase("life")) {
-
-            if (!p.hasPermission("lifecore.admin")) {
-                p.sendMessage("§cNo permission!");
-                return true;
-            }
-
-            if (args.length < 2) {
-                p.sendMessage("§cUsage: /life <give/set/remove/reset> <player> [amount]");
-                return true;
-            }
-
-            Player target = Bukkit.getPlayer(args[1]);
-
-            if (target == null) {
-                p.sendMessage("§cPlayer not found!");
-                return true;
-            }
-
-            UUID uuid = target.getUniqueId();
-            int current = getLives(uuid);
-
-            int amount = 0;
-            if (args.length >= 3) {
-                try {
-                    amount = Integer.parseInt(args[2]);
-                } catch (Exception e) {
-                    p.sendMessage("§cInvalid number!");
-                    return true;
-                }
-            }
-
-            switch (args[0].toLowerCase()) {
-
-                case "give" -> {
-                    int newLives = current + amount;
-                    lives.put(uuid, newLives);
-                    storage.setLives(uuid, newLives);
-                    storage.save(uuid);
-                    p.sendMessage("§aGave " + amount + " lives to " + target.getName());
-                }
-
-                case "set" -> {
-                    lives.put(uuid, amount);
-                    storage.setLives(uuid, amount);
-                    storage.save(uuid);
-                    p.sendMessage("§aSet lives of " + target.getName() + " to " + amount);
-                }
-
-                case "remove" -> {
-                    int newLives = Math.max(0, current - amount);
-                    lives.put(uuid, newLives);
-                    storage.setLives(uuid, newLives);
-                    storage.save(uuid);
-                    p.sendMessage("§cRemoved " + amount + " lives from " + target.getName());
-                }
-
-                case "reset" -> {
-                    int start = getConfig().getInt("start-lives", 10);
-                    lives.put(uuid, start);
-                    storage.setLives(uuid, start);
-                    storage.save(uuid);
-                    p.sendMessage("§eReset lives of " + target.getName());
-                }
-
-                default -> p.sendMessage("§cUnknown subcommand!");
-            }
-
+        // Mode Builder
+        if (cmd.getName().equalsIgnoreCase("mode") && args.length == 2 && args[0].equalsIgnoreCase("create")) {
+            ModeBuilderGUI.open(p, args[1]);
             return true;
         }
 
-        // MODE COMMAND
-        if (cmd.getName().equalsIgnoreCase("mode")) {
-            ModeGUI.open(p);
+        // Marketplace
+        if (cmd.getName().equalsIgnoreCase("market")) {
+            MarketplaceGUI.open(p);
             return true;
         }
 
+        // GUIs
         if (cmd.getName().equalsIgnoreCase("livesgui")) {
             LifeGUI.open(p);
             return true;
@@ -352,37 +282,44 @@ public class Main extends JavaPlugin implements Listener, TabExecutor {
         return false;
     }
 
-    // DOWNLOAD
-    private void downloadLanguage(String lang, Player p) {
+    // ---------------- DOWNLOAD ----------------
 
-        getServer().getScheduler().runTaskAsynchronously(this, () -> {
+    private void downloadMode(String name, String urlStr, Player p) {
 
+        Bukkit.getScheduler().runTaskAsynchronously(this, () -> {
             try {
-                String urlStr = langConfig.getString("languages." + lang);
-
-                if (urlStr == null) {
-                    p.sendMessage("§cLanguage not found!");
-                    return;
-                }
-
                 URL url = new URL(urlStr);
 
-                File folder = new File(getDataFolder(), "lang");
+                File folder = new File(getDataFolder(), "modes");
                 if (!folder.exists()) folder.mkdirs();
 
-                File file = new File(folder, lang + ".json");
+                File file = new File(folder, name + ".yml");
 
                 Files.copy(url.openStream(), file.toPath(), StandardCopyOption.REPLACE_EXISTING);
 
-                p.sendMessage("§aDownloaded " + lang);
-
-                languageManager.load(folder);
+                p.sendMessage("§aDownloaded mode: " + name);
 
             } catch (Exception e) {
                 p.sendMessage("§cDownload failed!");
                 e.printStackTrace();
             }
         });
+    }
+
+    // ---------------- TIMER ----------------
+
+    private long getTicksUntilMidnight() {
+
+        long now = System.currentTimeMillis();
+        Calendar next = Calendar.getInstance();
+
+        next.set(Calendar.HOUR_OF_DAY, 0);
+        next.set(Calendar.MINUTE, 0);
+        next.set(Calendar.SECOND, 0);
+        next.set(Calendar.MILLISECOND, 0);
+        next.add(Calendar.DAY_OF_MONTH, 1);
+
+        return (next.getTimeInMillis() - now) / 50;
     }
 
     @Override
