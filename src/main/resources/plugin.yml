@@ -8,6 +8,7 @@ commands:
   lifecore:
     description: Main command
     usage: /lifecore reload
+    aliases: [lc, core, wrn]
   language:
     description: Change or download language
     usage: /language <lang> | /language download <lang>
