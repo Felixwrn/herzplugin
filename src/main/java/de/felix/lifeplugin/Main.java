@@ -181,7 +181,7 @@ public class Main extends JavaPlugin implements Listener, TabExecutor {
         }
 
         // LanguageGUI
-        if (e.getView().getTitle().equals(LanguageGUI.getTitle())) {
+        if (e.getView().getTitle().equals(LanguageGUI.getTitle(p))) {
 
             e.setCancelled(true);
 
@@ -189,18 +189,16 @@ public class Main extends JavaPlugin implements Listener, TabExecutor {
 
             String name = e.getCurrentItem().getItemMeta().getDisplayName();
 
-            // ⬅ / ➡ Pagination
-            if (name.contains("Next")) {
+            if (name.contains("Next") || name.contains("Weiter") || name.contains("Suivant")) {
                 LanguageGUI.open(p, LanguageGUI.getPage(p.getUniqueId()) + 1);
                 return;
             }
 
-            if (name.contains("Previous")) {
+            if (name.contains("Previous") || name.contains("Zurück") || name.contains("Retour")) {
                 LanguageGUI.open(p, LanguageGUI.getPage(p.getUniqueId()) - 1);
                 return;
             }
 
-            // Sprache auswählen
             String lang = name.replace("§6★ ", "").replace("§f§l", "").toLowerCase();
 
             File file = new File(getDataFolder(), "lang/" + lang + ".json");
@@ -216,13 +214,14 @@ public class Main extends JavaPlugin implements Listener, TabExecutor {
         }
 
         // ModeGUI
-        if (e.getView().getTitle().equals(ModeGUI.getTitle())) {
+        if (e.getView().getTitle().equals(ModeGUI.getTitle(p))) {
 
             e.setCancelled(true);
 
             if (e.getCurrentItem() == null) return;
 
             Material mat = e.getCurrentItem().getType();
+
             String newMode;
 
             if (mat == Material.REDSTONE_BLOCK) {
@@ -255,11 +254,11 @@ public class Main extends JavaPlugin implements Listener, TabExecutor {
             e.setCancelled(true);
         }
 
-        if (e.getView().getTitle().equals(LanguageGUI.getTitle())) {
+        if (e.getView().getTitle().equals(LanguageGUI.getTitle(p))) {
             e.setCancelled(true);
         }
 
-        if (e.getView().getTitle().equals(ModeGUI.getTitle())) {
+        if (e.getView().getTitle().equals(ModeGUI.getTitle(p))) {
             e.setCancelled(true);
         }
     }
@@ -270,7 +269,6 @@ public class Main extends JavaPlugin implements Listener, TabExecutor {
 
         if (!(sender instanceof Player p)) return true;
 
-        // LANGUAGE
         if (cmd.getName().equalsIgnoreCase("language")) {
 
             if (args.length == 2 && args[0].equalsIgnoreCase("download")) {
@@ -293,7 +291,6 @@ public class Main extends JavaPlugin implements Listener, TabExecutor {
             }
         }
 
-        // MODE
         if (cmd.getName().equalsIgnoreCase("mode")) {
 
             if (!p.hasPermission("lifecore.mode")) {
@@ -324,30 +321,6 @@ public class Main extends JavaPlugin implements Listener, TabExecutor {
             return true;
         }
 
-        // RELOAD
-        if (cmd.getName().equalsIgnoreCase("lifecore")) {
-
-            if (args.length == 1 && args[0].equalsIgnoreCase("reload")) {
-
-                reloadConfig();
-                loadLangConfig();
-
-                languageManager.load(new File(getDataFolder(), "lang"));
-
-                mode = getConfig().getString("mode", "LIFESTEAL");
-
-                for (Player online : getServer().getOnlinePlayers()) {
-                    int loaded = storage.getLives(online.getUniqueId());
-                    lives.put(online.getUniqueId(), loaded);
-                    updateActionBar(online);
-                }
-
-                p.sendMessage("§aReloaded!");
-                return true;
-            }
-        }
-
-        // GUI
         if (cmd.getName().equalsIgnoreCase("livesgui")) {
             LifeGUI.open(p);
             return true;
@@ -359,19 +332,6 @@ public class Main extends JavaPlugin implements Listener, TabExecutor {
         }
 
         return false;
-    }
-
-    // TAB COMPLETION
-    @Override
-    public List<String> onTabComplete(CommandSender sender, Command cmd, String label, String[] args) {
-
-        if (cmd.getName().equalsIgnoreCase("mode")) {
-            if (args.length == 1) {
-                return List.of("hardcore", "lifesteal");
-            }
-        }
-
-        return null;
     }
 
     // DOWNLOAD
