@@ -1,16 +1,16 @@
 {
-  "death": "§cYou died",
+  "langgui_title": "§6§lLanguage Selection",
+  "langgui_next": "§aNext →",
+  "langgui_previous": "§c← Previous",
+  "langgui_selected": "§a✔ Selected",
+  "langgui_installed": "§e✔ Installed",
+  "langgui_not_installed": "§c✖ Not installed",
+  "langgui_click_select": "§eClick to select",
+  "langgui_click_download": "§cClick to download",
 
-  "lives": "§cLives: §f%lives%",
-
-  "no_lives": "§cYou have no lives left!",
-
-  "gui_life_title": "§cYour Life Menu",
-  "gui_lives_title": "§cLives",
-  "gui_current": "Current:",
-
-  "mode_set_hardcore": "§aMode set: HARDCORE",
-  "mode_set_lifesteal": "§aMode set: LIFESTEAL",
-
-  "language_set": "§aLanguage changed"
+  "modegui_title": "§6§lMode Selector",
+  "mode_hardcore": "§c§lHardcore",
+  "mode_lifesteal": "§a§lLifesteal",
+  "mode_selected": "§a✔ Currently active",
+  "mode_click": "§eClick to activate"
 }
