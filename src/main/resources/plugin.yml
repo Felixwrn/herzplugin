@@ -1,7 +1,8 @@
-name: LifePlugin
-version: 1.3
+name: LifeCore
+version: 1.5
 main: de.felix.lifeplugin.Main
 api-version: 1.21
+author: Felixwrn
 
 commands:
   lifecore:
@@ -12,8 +13,10 @@ commands:
     usage: /language <lang> | /language download <lang>
   langgui:
     description: opens language GUI
+    aliases: [lg, lang]
   livesgui:
     description: Open lives GUI
+    aliases: [lives, leben]
 
 permissions:
   lifeplugin.admin:
