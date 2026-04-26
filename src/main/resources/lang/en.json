@@ -1,4 +1,12 @@
 {
+  "death": "§cYou died",
+  "lives": "§cLives: §f%lives%",
+  "no_lives": "§cYou have no lives left!",
+
+  "gui_life_title": "§cLife Menu",
+  "gui_lives_title": "§cLives",
+  "gui_current": "Current:",
+
   "langgui_title": "§6§lLanguage Selection",
   "langgui_next": "§aNext →",
   "langgui_previous": "§c← Previous",
