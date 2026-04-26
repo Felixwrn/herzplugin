@@ -5,6 +5,9 @@ import de.felix.lifeplugin.gui.LifeGUI;
 import de.felix.lifeplugin.gui.ModeGUI;
 import de.felix.lifeplugin.lang.LanguageManager;
 import de.felix.lifeplugin.storage.*;
+import org.bukkit.Bukkit;
+import org.bukkit.Material;
+import org.bukkit.Sound;
 import org.bukkit.command.*;
 import org.bukkit.entity.Player;
 import org.bukkit.event.*;
@@ -13,7 +16,6 @@ import org.bukkit.event.inventory.*;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.configuration.file.YamlConfiguration;
-import org.bukkit.Material;
 
 import java.io.*;
 import java.net.URL;
@@ -199,7 +201,7 @@ public class Main extends JavaPlugin implements Listener, TabExecutor {
             p.closeInventory();
         }
 
-        // ModeGUI
+        // MODE GUI (🔥 mit Sound + Animation)
         if (e.getView().getTitle().equals(ModeGUI.getTitle())) {
 
             e.setCancelled(true);
@@ -207,20 +209,30 @@ public class Main extends JavaPlugin implements Listener, TabExecutor {
             if (e.getCurrentItem() == null) return;
 
             Material mat = e.getCurrentItem().getType();
+            String newMode;
 
-            if (mat == Material.REDSTONE) {
-                mode = "HARDCORE";
+            if (mat == Material.REDSTONE_BLOCK) {
+                newMode = "HARDCORE";
             } else if (mat == Material.HEART_OF_THE_SEA) {
-                mode = "LIFESTEAL";
+                newMode = "LIFESTEAL";
             } else {
                 return;
             }
 
+            mode = newMode;
+
             getConfig().set("mode", mode);
             saveConfig();
 
+            // 🔊 Sound
+            p.playSound(p.getLocation(), Sound.UI_BUTTON_CLICK, 1, 1);
+
+            // ✨ Animation (GUI refresh)
+            Bukkit.getScheduler().runTaskLater(this, () -> {
+                ModeGUI.open(p);
+            }, 5L);
+
             p.sendMessage("§aMode set to " + mode);
-            p.closeInventory();
         }
     }
 
