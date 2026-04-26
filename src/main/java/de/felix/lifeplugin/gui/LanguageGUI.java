@@ -8,8 +8,10 @@ import org.bukkit.entity.Player;
 import org.bukkit.inventory.*;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.inventory.meta.SkullMeta;
+import org.bukkit.profile.PlayerProfile;
 
 import java.io.File;
+import java.net.URL;
 import java.util.*;
 
 public class LanguageGUI {
@@ -46,15 +48,14 @@ public class LanguageGUI {
         int[] slots = {10,11,12,13,14,15,16};
         int index = 0;
 
-        // 🌍 Flag URLs (Minecraft Heads)
+        // 🌍 Flag Textures
         Map<String, String> flags = new HashMap<>();
-        flags.put("de", "eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvZGRlYzA4Y2Y3YzFiNjY2YmM1NTRkN2Y3MzI1Y2Q4OTBiODc1YjMyZjA0NmU4OTk0ZTM3ZmY0ZmRjY2QifX19");
-        flags.put("en", "eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvZWM5OTkxOTk3ODMyY2NhYmU5N2RjMjBlY2QxNDRlZWI2OTg1OTUyM2RjMTRhMTlkMmJhOTQ3NjI5ZTcifX19");
-        flags.put("fr", "eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvNzY1MjFhNmFlYjM1NzM3ZDA3YzM3YzI4ZTg0Njk4NjY5YjQ4MzI3NjlhZjljY2JjYzJhZjM2ZmIifX19");
-        flags.put("es", "eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvNzM0Njk4ZjI0NTgxZmQzM2Q2NzI4NjQ4YzZlNmQ4NzYyYmY1NzI0ZTY3ZjQ5Mjk5NjZjZjQifX19");
-        flags.put("it", "eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvYzA3NTU5Y2U4NjI1MjgxNzYyZjI5NjY5ZTk5Y2M1YjYzODQ1NDgyZmUifX19");
+        flags.put("de", "ddecc08cf7c1b666bc554d7f7325cd890b875b32f046e8994e37ff4fdccd");
+        flags.put("en", "ec9991997832ccabe97dc20ecd144eeb69859523dc14a19d2ba947629e7");
+        flags.put("fr", "76521a6aeb35737d07c37c28e84698669b4832769af9ccbcc2af36fb");
+        flags.put("es", "734698f24581fd33d6728648c6e6d8762bf5724e67f4929966cf4");
+        flags.put("it", "c07559ce8625281762f29669e99cc5b63845482fe");
 
-        // 🔧 Methode für Skull
         for (String lang : getAllLanguages()) {
 
             boolean installed = new File(
@@ -69,25 +70,36 @@ public class LanguageGUI {
 
             if (meta == null) continue;
 
-            // Texture setzen (nur wenn vorhanden)
+            // 🌍 Flag setzen
             if (flags.containsKey(lang)) {
-                meta.setOwnerProfile(Bukkit.createPlayerProfile(UUID.randomUUID()));
-                meta.getOwnerProfile().getTextures().setSkin(
-                        java.net.URI.create("http://textures.minecraft.net/texture/" + flags.get(lang))
-                );
+                try {
+                    PlayerProfile profile = Bukkit.createPlayerProfile(UUID.randomUUID());
+
+                    profile.getTextures().setSkin(
+                            new URL("http://textures.minecraft.net/texture/" + flags.get(lang))
+                    );
+
+                    meta.setOwnerProfile(profile);
+
+                } catch (Exception e) {
+                    Bukkit.getLogger().warning("Failed to load flag for " + lang);
+                }
             }
 
+            // ⭐ Name + Highlight
             meta.setDisplayName(
                     isCurrent
                             ? "§6★ §f§l" + lang.toUpperCase()
                             : "§f§l" + lang.toUpperCase()
             );
 
+            // ✨ Glint
             if (isCurrent) {
                 meta.addEnchant(Enchantment.UNBREAKING, 1, true);
                 meta.addItemFlags(ItemFlag.HIDE_ENCHANTS);
             }
 
+            // 📄 Lore
             meta.setLore(List.of(
                     "§7Status:",
                     isCurrent
