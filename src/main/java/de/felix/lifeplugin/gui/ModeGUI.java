@@ -1,90 +1,93 @@
 package de.felix.lifeplugin.gui;
 
 import de.felix.lifeplugin.Main;
-import org.bukkit.Bukkit;
-import org.bukkit.Material;
-import org.bukkit.enchantments.Enchantment;
+import com.google.gson.JsonObject;
+import org.bukkit.*;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.*;
 import org.bukkit.inventory.meta.ItemMeta;
+import org.bukkit.configuration.file.YamlConfiguration;
 
-import java.util.List;
+import java.io.File;
+import java.util.*;
 
 public class ModeGUI {
 
     public static String getTitle(Player p) {
-        return Main.getInstance().getLanguageManager()
-                .get(p.getUniqueId(), "modegui_title");
+        return "§6Mode Selector";
     }
 
     public static void open(Player p) {
 
-        var lm = Main.getInstance().getLanguageManager();
-        var uuid = p.getUniqueId();
+        Inventory inv = Bukkit.createInventory(null, 45, getTitle(p));
 
-        Inventory inv = Bukkit.createInventory(null, 27, getTitle(p));
+        String current = Main.getInstance().getConfig().getString("mode", "lifesteal");
 
-        String current = Main.getInstance().getConfig().getString("mode", "LIFESTEAL");
+        int slot = 10;
 
-        // Hardcore
-        boolean hc = current.equalsIgnoreCase("HARDCORE");
+        // 🔹 1. CONFIG MODES
+        if (Main.getInstance().getConfig().getConfigurationSection("modes") != null) {
 
-        ItemStack hardcore = new ItemStack(Material.REDSTONE_BLOCK);
-        ItemMeta h = hardcore.getItemMeta();
+            for (String mode : Main.getInstance().getConfig().getConfigurationSection("modes").getKeys(false)) {
 
-        if (h != null) {
-
-            h.setDisplayName(
-                    hc
-                            ? "§6★ " + lm.get(uuid, "mode_hardcore")
-                            : lm.get(uuid, "mode_hardcore")
-            );
-
-            if (hc) {
-                h.addEnchant(Enchantment.UNBREAKING, 1, true);
-                h.addItemFlags(ItemFlag.HIDE_ENCHANTS);
+                inv.setItem(slot++, createModeItem(mode, current.equalsIgnoreCase(mode), "§7Config Mode"));
             }
-
-            h.setLore(List.of(
-                    hc
-                            ? lm.get(uuid, "mode_selected")
-                            : lm.get(uuid, "mode_click")
-            ));
-
-            hardcore.setItemMeta(h);
         }
 
-        // Lifesteal
-        boolean ls = current.equalsIgnoreCase("LIFESTEAL");
+        // 🔹 2. LOCAL FILE MODES (/modes/)
+        File folder = new File(Main.getInstance().getDataFolder(), "modes");
 
-        ItemStack lifesteal = new ItemStack(Material.HEART_OF_THE_SEA);
-        ItemMeta l = lifesteal.getItemMeta();
+        if (folder.exists()) {
+            for (File file : Objects.requireNonNull(folder.listFiles())) {
 
-        if (l != null) {
+                if (!file.getName().endsWith(".yml")) continue;
 
-            l.setDisplayName(
-                    ls
-                            ? "§6★ " + lm.get(uuid, "mode_lifesteal")
-                            : lm.get(uuid, "mode_lifesteal")
-            );
+                String name = file.getName().replace(".yml", "");
 
-            if (ls) {
-                l.addEnchant(Enchantment.UNBREAKING, 1, true);
-                l.addItemFlags(ItemFlag.HIDE_ENCHANTS);
+                inv.setItem(slot++, createModeItem(name, current.equalsIgnoreCase(name), "§7Local Mode"));
             }
-
-            l.setLore(List.of(
-                    ls
-                            ? lm.get(uuid, "mode_selected")
-                            : lm.get(uuid, "mode_click")
-            ));
-
-            lifesteal.setItemMeta(l);
         }
 
-        inv.setItem(11, hardcore);
-        inv.setItem(15, lifesteal);
+        // 🔹 3. MARKETPLACE MODES (optional anzeigen)
+        for (String name : MarketplaceGUI.getAllModes()) {
+
+            JsonObject obj = MarketplaceGUI.get(name);
+
+            inv.setItem(slot++, createModeItem(
+                    name,
+                    current.equalsIgnoreCase(name),
+                    "§7Marketplace",
+                    obj.get("description").getAsString()
+            ));
+        }
 
         p.openInventory(inv);
+    }
+
+    // ---------------- ITEM ----------------
+
+    private static ItemStack createModeItem(String name, boolean selected, String... loreLines) {
+
+        ItemStack item = new ItemStack(Material.NETHER_STAR);
+        ItemMeta meta = item.getItemMeta();
+
+        if (meta == null) return item;
+
+        meta.setDisplayName(selected ? "§6★ §e" + name : "§e" + name);
+
+        List<String> lore = new ArrayList<>();
+        lore.addAll(Arrays.asList(loreLines));
+        lore.add("");
+        lore.add(selected ? "§aSelected" : "§7Click to select");
+
+        meta.setLore(lore);
+
+        if (selected) {
+            meta.addEnchant(org.bukkit.enchantments.Enchantment.getByName("UNBREAKING"), 1, true);
+            meta.addItemFlags(ItemFlag.HIDE_ENCHANTS);
+        }
+
+        item.setItemMeta(meta);
+        return item;
     }
 }
