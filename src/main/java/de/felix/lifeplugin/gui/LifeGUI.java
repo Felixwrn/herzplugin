@@ -9,25 +9,19 @@ import java.util.List;
 
 public class LifeGUI {
 
-    public static String getTitle(Player p) {
+    public static String getTitle() {
         return "§cLives";
     }
 
     public static void open(Player p) {
 
-        Inventory inv = Bukkit.createInventory(null, 27, getTitle(p));
+        Inventory inv = Bukkit.createInventory(null, 27, getTitle());
 
         ItemStack heart = new ItemStack(Material.RED_DYE);
         ItemMeta meta = heart.getItemMeta();
 
-        if (meta == null) return;
-
-        meta.setDisplayName("§cLives");
-        meta.setLore(List.of("§7Current lives"));
-
-        // ✨ Glint FIX
-        meta.addEnchant(org.bukkit.enchantments.Enchantment.getByName("UNBREAKING"), 1, true);
-        meta.addItemFlags(ItemFlag.HIDE_ENCHANTS);
+        meta.setDisplayName("§cYour Lives");
+        meta.setLore(List.of("§7Example"));
 
         heart.setItemMeta(meta);
 
