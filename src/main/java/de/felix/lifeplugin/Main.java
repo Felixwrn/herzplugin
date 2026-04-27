@@ -17,7 +17,7 @@ import java.nio.file.Files;
 import java.nio.file.StandardCopyOption;
 import java.util.Calendar;
 
-public class Main extends JavaPlugin implements Listener {
+public class Main extends JavaPlugin implements Listener, CommandExecutor {
 
     private static Main instance;
 
@@ -33,7 +33,12 @@ public class Main extends JavaPlugin implements Listener {
         getServer().getPluginManager().registerEvents(this, this);
         getServer().getPluginManager().registerEvents(new ChatInput(), this);
 
-        // 🔄 Daily Marketplace Reload (0:00)
+        // ✅ COMMANDS REGISTRIEREN (WICHTIG!)
+        if (getCommand("mode") != null) getCommand("mode").setExecutor(this);
+        if (getCommand("market") != null) getCommand("market").setExecutor(this);
+        if (getCommand("modes") != null) getCommand("modes").setExecutor(this);
+
+        // 🔄 Daily Marketplace Reload
         Bukkit.getScheduler().runTaskTimer(this, () -> {
             MarketplaceGUI.reload();
         }, getTicksUntilMidnight(), 20L * 60 * 60 * 24);
@@ -47,15 +52,17 @@ public class Main extends JavaPlugin implements Listener {
 
         if (!(e.getWhoClicked() instanceof Player p)) return;
 
+        String title = e.getView().getTitle();
+
         // 🔹 Mode Builder
-        if (e.getView().getTitle().startsWith("§6Mode Builder:")) {
+        if (title.contains("Mode Builder")) {
             e.setCancelled(true);
             ModeBuilderGUI.click(p, e.getSlot());
             return;
         }
 
         // 🔹 Marketplace
-        if (e.getView().getTitle().equals("§6Marketplace")) {
+        if (title.contains("Marketplace")) {
 
             e.setCancelled(true);
 
@@ -64,7 +71,10 @@ public class Main extends JavaPlugin implements Listener {
             String name = e.getCurrentItem().getItemMeta().getDisplayName().replace("§e", "");
 
             JsonObject obj = MarketplaceGUI.get(name);
-            if (obj == null) return;
+            if (obj == null) {
+                p.sendMessage("§cMode not found!");
+                return;
+            }
 
             String url = obj.get("url").getAsString();
 
@@ -73,7 +83,7 @@ public class Main extends JavaPlugin implements Listener {
         }
 
         // 🔹 Mode Selector
-        if (e.getView().getTitle().equals(ModeGUI.getTitle(p))) {
+        if (title.contains("Mode")) {
 
             e.setCancelled(true);
 
@@ -99,19 +109,23 @@ public class Main extends JavaPlugin implements Listener {
 
         if (!(sender instanceof Player p)) return true;
 
-        if (cmd.getName().equalsIgnoreCase("mode") && args.length == 2 && args[0].equalsIgnoreCase("create")) {
-            ModeBuilderGUI.open(p, args[1]);
-            return true;
-        }
+        switch (cmd.getName().toLowerCase()) {
 
-        if (cmd.getName().equalsIgnoreCase("market")) {
-            MarketplaceGUI.open(p);
-            return true;
-        }
+            case "mode":
+                if (args.length == 2 && args[0].equalsIgnoreCase("create")) {
+                    ModeBuilderGUI.open(p, args[1]);
+                } else {
+                    ModeGUI.open(p);
+                }
+                return true;
 
-        if (cmd.getName().equalsIgnoreCase("modes")) {
-            ModeGUI.open(p);
-            return true;
+            case "market":
+                MarketplaceGUI.open(p);
+                return true;
+
+            case "modes":
+                ModeGUI.open(p);
+                return true;
         }
 
         return false;
