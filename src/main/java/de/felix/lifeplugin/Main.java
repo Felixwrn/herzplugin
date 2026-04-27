@@ -3,7 +3,6 @@ package de.felix.lifeplugin;
 import com.google.gson.JsonObject;
 import de.felix.lifeplugin.gui.*;
 import de.felix.lifeplugin.util.ChatInput;
-
 import org.bukkit.Bukkit;
 import org.bukkit.command.*;
 import org.bukkit.entity.Player;
@@ -30,15 +29,21 @@ public class Main extends JavaPlugin implements Listener, CommandExecutor {
 
         instance = this;
 
+        saveDefaultConfig();
+
         getServer().getPluginManager().registerEvents(this, this);
         getServer().getPluginManager().registerEvents(new ChatInput(), this);
 
-        // ✅ COMMANDS REGISTRIEREN (WICHTIG!)
-        if (getCommand("mode") != null) getCommand("mode").setExecutor(this);
-        if (getCommand("market") != null) getCommand("market").setExecutor(this);
-        if (getCommand("modes") != null) getCommand("modes").setExecutor(this);
+        // Commands
+        register("mode");
+        register("market");
+        register("modes");
+        register("language");
+        register("lifecore");
+        register("livesgui");
+        register("langgui");
 
-        // 🔄 Daily Marketplace Reload
+        // Daily Marketplace Reload
         Bukkit.getScheduler().runTaskTimer(this, () -> {
             MarketplaceGUI.reload();
         }, getTicksUntilMidnight(), 20L * 60 * 60 * 24);
@@ -46,7 +51,11 @@ public class Main extends JavaPlugin implements Listener, CommandExecutor {
         getLogger().info("LifePlugin enabled!");
     }
 
-    // ---------------- GUI CLICK ----------------
+    private void register(String cmd) {
+        if (getCommand(cmd) != null) getCommand(cmd).setExecutor(this);
+    }
+
+    // ---------------- CLICK ----------------
     @EventHandler
     public void onClick(InventoryClickEvent e) {
 
@@ -54,16 +63,15 @@ public class Main extends JavaPlugin implements Listener, CommandExecutor {
 
         String title = e.getView().getTitle();
 
-        // 🔹 Mode Builder
+        // Mode Builder
         if (title.contains("Mode Builder")) {
             e.setCancelled(true);
             ModeBuilderGUI.click(p, e.getSlot());
             return;
         }
 
-        // 🔹 Marketplace
+        // Marketplace
         if (title.contains("Marketplace")) {
-
             e.setCancelled(true);
 
             if (e.getCurrentItem() == null || e.getCurrentItem().getItemMeta() == null) return;
@@ -71,20 +79,14 @@ public class Main extends JavaPlugin implements Listener, CommandExecutor {
             String name = e.getCurrentItem().getItemMeta().getDisplayName().replace("§e", "");
 
             JsonObject obj = MarketplaceGUI.get(name);
-            if (obj == null) {
-                p.sendMessage("§cMode not found!");
-                return;
-            }
+            if (obj == null) return;
 
-            String url = obj.get("url").getAsString();
-
-            downloadMode(name, url, p);
+            downloadMode(name, obj.get("url").getAsString(), p);
             return;
         }
 
-        // 🔹 Mode Selector
+        // Mode GUI
         if (title.contains("Mode")) {
-
             e.setCancelled(true);
 
             if (e.getCurrentItem() == null || e.getCurrentItem().getItemMeta() == null) return;
@@ -98,8 +100,8 @@ public class Main extends JavaPlugin implements Listener, CommandExecutor {
             saveConfig();
 
             p.sendMessage("§aMode set to " + name);
-
             ModeGUI.open(p);
+            return;
         }
     }
 
@@ -126,6 +128,27 @@ public class Main extends JavaPlugin implements Listener, CommandExecutor {
             case "modes":
                 ModeGUI.open(p);
                 return true;
+
+            case "livesgui":
+                LifeGUI.open(p);
+                return true;
+
+            case "langgui":
+                LanguageGUI.open(p);
+                return true;
+
+            case "language":
+                if (args.length == 1) {
+                    p.sendMessage("§aLanguage set to " + args[0]);
+                }
+                return true;
+
+            case "lifecore":
+                if (args.length == 1 && args[0].equalsIgnoreCase("reload")) {
+                    reloadConfig();
+                    p.sendMessage("§aReloaded!");
+                }
+                return true;
         }
 
         return false;
@@ -136,7 +159,6 @@ public class Main extends JavaPlugin implements Listener, CommandExecutor {
 
         Bukkit.getScheduler().runTaskAsynchronously(this, () -> {
             try {
-
                 URL url = new URL(urlStr);
 
                 File folder = new File(getDataFolder(), "modes");
