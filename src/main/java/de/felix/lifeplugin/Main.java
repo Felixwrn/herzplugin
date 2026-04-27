@@ -2,6 +2,7 @@ package de.felix.lifeplugin;
 
 import com.google.gson.JsonObject;
 import de.felix.lifeplugin.gui.*;
+import de.felix.lifeplugin.lang.LanguageManager;
 import de.felix.lifeplugin.util.ChatInput;
 
 import org.bukkit.Bukkit;
@@ -21,7 +22,7 @@ public class Main extends JavaPlugin implements Listener, CommandExecutor {
 
     private static Main instance;
 
-    private final Map<UUID, String> playerLang = new HashMap<>();
+    private LanguageManager languageManager;
 
     public static Main getInstance() {
         return instance;
@@ -34,9 +35,18 @@ public class Main extends JavaPlugin implements Listener, CommandExecutor {
 
         saveDefaultConfig();
 
+        // 📂 Language System laden
+        File langFolder = new File(getDataFolder(), "lang");
+        if (!langFolder.exists()) langFolder.mkdirs();
+
+        languageManager = new LanguageManager();
+        languageManager.load(langFolder);
+
+        // Events
         getServer().getPluginManager().registerEvents(this, this);
         getServer().getPluginManager().registerEvents(new ChatInput(), this);
 
+        // Commands
         register("mode");
         register("market");
         register("modes");
@@ -45,6 +55,7 @@ public class Main extends JavaPlugin implements Listener, CommandExecutor {
         register("livesgui");
         register("lifecore");
 
+        // Marketplace Reload
         Bukkit.getScheduler().runTaskTimer(this, () -> {
             MarketplaceGUI.reload();
         }, getTicksUntilMidnight(), 20L * 60 * 60 * 24);
@@ -57,15 +68,22 @@ public class Main extends JavaPlugin implements Listener, CommandExecutor {
     }
 
     // ---------------- LANGUAGE ----------------
+
+    public LanguageManager getLanguageManager() {
+        return languageManager;
+    }
+
     public String getLang(Player p) {
-        return playerLang.getOrDefault(p.getUniqueId(), "en");
+        return getConfig().getString("player-lang." + p.getUniqueId(), "en");
     }
 
     public void setLang(Player p, String lang) {
-        playerLang.put(p.getUniqueId(), lang);
+        getConfig().set("player-lang." + p.getUniqueId(), lang);
+        saveConfig();
     }
 
     // ---------------- GUI CLICK ----------------
+
     @EventHandler
     public void onClick(InventoryClickEvent e) {
 
@@ -83,7 +101,7 @@ public class Main extends JavaPlugin implements Listener, CommandExecutor {
             e.setCancelled(true);
         }
 
-        // 🔹 LANGUAGE GUI
+        // 🌍 LANGUAGE GUI
         if (title.contains("Language")) {
 
             if (e.getCurrentItem() == null || e.getCurrentItem().getItemMeta() == null) return;
@@ -96,17 +114,17 @@ public class Main extends JavaPlugin implements Listener, CommandExecutor {
 
             p.sendMessage("§aLanguage set to " + lang);
 
-            LanguageGUI.open(p); // reload GUI
+            LanguageGUI.open(p);
             return;
         }
 
-        // 🔹 MODE BUILDER
+        // 🔧 MODE BUILDER
         if (title.contains("Mode Builder")) {
             ModeBuilderGUI.click(p, e.getSlot());
             return;
         }
 
-        // 🔹 MARKETPLACE
+        // 📦 MARKETPLACE
         if (title.contains("Marketplace")) {
 
             if (e.getCurrentItem() == null || e.getCurrentItem().getItemMeta() == null) return;
@@ -120,7 +138,7 @@ public class Main extends JavaPlugin implements Listener, CommandExecutor {
             return;
         }
 
-        // 🔹 MODE GUI
+        // ⚙ MODE GUI
         if (title.contains("Mode")) {
 
             if (e.getCurrentItem() == null || e.getCurrentItem().getItemMeta() == null) return;
@@ -140,6 +158,7 @@ public class Main extends JavaPlugin implements Listener, CommandExecutor {
     }
 
     // ---------------- COMMANDS ----------------
+
     @Override
     public boolean onCommand(CommandSender sender, Command cmd, String label, String[] args) {
 
@@ -180,7 +199,10 @@ public class Main extends JavaPlugin implements Listener, CommandExecutor {
 
             case "lifecore":
                 if (args.length == 1 && args[0].equalsIgnoreCase("reload")) {
+
                     reloadConfig();
+                    languageManager.load(new File(getDataFolder(), "lang"));
+
                     p.sendMessage("§aReloaded!");
                 }
                 return true;
@@ -190,6 +212,7 @@ public class Main extends JavaPlugin implements Listener, CommandExecutor {
     }
 
     // ---------------- DOWNLOAD ----------------
+
     private void downloadMode(String name, String urlStr, Player p) {
 
         Bukkit.getScheduler().runTaskAsynchronously(this, () -> {
@@ -212,6 +235,7 @@ public class Main extends JavaPlugin implements Listener, CommandExecutor {
     }
 
     // ---------------- TIMER ----------------
+
     private long getTicksUntilMidnight() {
 
         long now = System.currentTimeMillis();
