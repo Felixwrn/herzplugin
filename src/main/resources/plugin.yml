@@ -1,48 +1,9 @@
-name: LifeCore
-version: 1.5
+
+name: WRNPlugin
+version: 1.0
 main: de.felix.lifeplugin.Main
 api-version: 1.21
-author: Felixwrn
 
 commands:
-  lifecore:
-    description: Main command
-    usage: /lifecore reload
-    aliases: [lc, core, wrn]
-
-  language:
-    description: Change or download language
-    usage: /language <lang> | /language download <lang>
-
-  langgui:
-    description: opens language GUI
-    aliases: [lg, lang]
-
-  livesgui:
-    description: Open lives GUI
-    aliases: [lives, leben]
-
   mode:
-    description: Mode system (builder + selector)
-    usage: /mode create <name> | /mode
-    permission: lifeplugin.admin
-
-  modes:
-    description: Open mode selector GUI
-
-  market:
-    description: Open marketplace GUI
-
-  life:
-    description: Manage lives
-    usage: /life <give/set/remove/reset>
-    permission: lifecore.admin
-
-permissions:
-  lifeplugin.admin:
-    description: Allows mode changes
-    default: op
-
-  lifecore.admin:
-    description: Allows life management
-    default: op
+    description: Mode command

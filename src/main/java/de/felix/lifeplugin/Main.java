@@ -2,6 +2,7 @@
 package de.felix.lifeplugin;
 
 import de.felix.lifeplugin.ai.OpenAIService;
+import de.felix.lifeplugin.commands.ModeAICommand;
 import org.bukkit.plugin.java.JavaPlugin;
 
 public class Main extends JavaPlugin {
@@ -15,8 +16,8 @@ public class Main extends JavaPlugin {
 
     @Override
     public void onEnable() {
-        instance = this;
 
+        instance = this;
         saveDefaultConfig();
 
         String key = getConfig().getString("openai.api-key");
@@ -24,7 +25,10 @@ public class Main extends JavaPlugin {
 
         ai = new OpenAIService(key, model);
 
-        getLogger().info("LifePlugin with AI enabled!");
+        ModeAICommand cmd = new ModeAICommand();
+        getCommand("mode").setExecutor(cmd);
+
+        getLogger().info("WRN AI Plugin enabled!");
     }
 
     public OpenAIService getAI() {
