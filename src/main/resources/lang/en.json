@@ -1,24 +1,22 @@
 {
-  "death": "§cYou died",
-  "lives": "§cLives: §f%lives%",
-  "no_lives": "§cYou have no lives left!",
+  "gui_life_title": "§cLives",
+  "gui_lives_title": "§cYour Lives",
+  "gui_current": "§7Current:",
 
-  "gui_life_title": "§cLife Menu",
-  "gui_lives_title": "§cLives",
-  "gui_current": "Current:",
+  "gui_language_title": "§6Language",
+  "gui_language_select": "§7Click to select",
 
-  "langgui_title": "§6§lLanguage Selection",
-  "langgui_next": "§aNext →",
-  "langgui_previous": "§c← Previous",
-  "langgui_selected": "§a✔ Selected",
-  "langgui_installed": "§e✔ Installed",
-  "langgui_not_installed": "§c✖ Not installed",
-  "langgui_click_select": "§eClick to select",
-  "langgui_click_download": "§cClick to download",
+  "gui_mode_title": "§6Mode Selection",
+  "gui_mode_selected": "§aSelected",
+  "gui_mode_click": "§7Click to select",
 
-  "modegui_title": "§6§lMode Selector",
-  "mode_hardcore": "§c§lHardcore",
-  "mode_lifesteal": "§a§lLifesteal",
-  "mode_selected": "§a✔ Currently active",
-  "mode_click": "§eClick to activate"
+  "gui_marketplace_title": "§6Marketplace",
+  "gui_marketplace_download": "§aClick to download",
+
+  "msg_language_set": "§aLanguage set to §e%lang%",
+  "msg_mode_set": "§aMode set to §e%mode%",
+  "msg_download_success": "§aDownloaded mode: §e%mode%",
+  "msg_download_fail": "§cDownload failed!",
+
+  "no_lives": "§cYou have no lives left!"
 }
