@@ -4,7 +4,6 @@ import com.google.gson.JsonObject;
 import de.felix.lifeplugin.ai.OpenAIService;
 import de.felix.lifeplugin.commands.ModeAICommand;
 import de.felix.lifeplugin.gui.*;
-import de.felix.lifeplugin.market.MarketplaceManager;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.event.*;
@@ -72,6 +71,20 @@ public class Main extends JavaPlugin implements Listener {
         return getConfig().getString("player-lang." + p.getUniqueId(), "en");
     }
 
+    // ---------------- MODE SAVE ----------------
+
+    public void saveMode(String name, int lives, boolean regen, boolean ban, boolean lifesteal) {
+
+        name = name.toLowerCase();
+
+        getConfig().set("modes." + name + ".lives", lives);
+        getConfig().set("modes." + name + ".regen", regen);
+        getConfig().set("modes." + name + ".ban", ban);
+        getConfig().set("modes." + name + ".lifesteal", lifesteal);
+
+        saveConfig();
+    }
+
     // ---------------- CLICK HANDLING ----------------
 
     @EventHandler
@@ -81,7 +94,7 @@ public class Main extends JavaPlugin implements Listener {
 
         String title = e.getView().getTitle();
 
-        // 🔒 Block alle GUIs
+        // 🔒 GUI sichern
         if (
                 title.contains("Mode") ||
                 title.contains("Marketplace") ||
