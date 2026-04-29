@@ -2,7 +2,7 @@ package de.felix.lifeplugin;
 
 import de.felix.lifeplugin.gui.*;
 import de.felix.lifeplugin.lang.LanguageManager;
-import net.kyori.adventure.text.Component;
+import de.felix.lifeplugin.util.ActionBarUtil;
 import org.bukkit.*;
 import org.bukkit.command.*;
 import org.bukkit.entity.Player;
@@ -33,7 +33,7 @@ public class Main extends JavaPlugin implements Listener {
         Bukkit.getScheduler().runTaskTimer(this, () -> {
             for (Player p : Bukkit.getOnlinePlayers()) {
                 int lives = getConfig().getInt("lives." + p.getUniqueId(), 3);
-                p.sendActionBar(Component.text("§cLives: " + lives));
+                ActionBarUtil.send(p, "§cLives: " + lives);
             }
         }, 0, 40);
     }

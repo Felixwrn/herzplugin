@@ -4,6 +4,7 @@ import java.io.File;
 import java.util.*;
 
 public class LanguageManager {
+
     private final HashMap<UUID, String> playerLang = new HashMap<>();
 
     public void load(File folder) {
