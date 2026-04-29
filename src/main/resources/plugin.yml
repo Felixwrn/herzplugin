@@ -4,6 +4,7 @@ main: de.felix.lifeplugin.Main
 api-version: 1.20
 
 commands:
-  language:
-  langgui:
   livesgui:
+  langgui:
+  modegui:
+  market:

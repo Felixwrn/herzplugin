@@ -1,14 +1,13 @@
 package de.felix.lifeplugin;
 
-import de.felix.lifeplugin.commands.LanguageCommand;
 import de.felix.lifeplugin.gui.*;
 import de.felix.lifeplugin.lang.LanguageManager;
 import org.bukkit.*;
 import org.bukkit.command.*;
 import org.bukkit.entity.Player;
 import org.bukkit.event.*;
-import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.entity.PlayerDeathEvent;
+import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import java.io.File;
@@ -19,7 +18,6 @@ public class Main extends JavaPlugin implements Listener {
     private LanguageManager langManager;
 
     public static Main getInstance() { return instance; }
-    public LanguageManager getLangManager() { return langManager; }
 
     @Override
     public void onEnable() {
@@ -31,32 +29,48 @@ public class Main extends JavaPlugin implements Listener {
 
         Bukkit.getPluginManager().registerEvents(this, this);
 
-        getCommand("language").setExecutor(new LanguageCommand(langManager));
+        Bukkit.getScheduler().runTaskTimer(this, () -> {
+            for (Player p : Bukkit.getOnlinePlayers()) {
+                int lives = getConfig().getInt("lives." + p.getUniqueId(), 3);
+                p.sendActionBar("§cLives: " + lives);
+            }
+        }, 0, 40);
     }
 
     @EventHandler
     public void onClick(InventoryClickEvent e) {
+
         if (!(e.getWhoClicked() instanceof Player p)) return;
         String title = e.getView().getTitle();
 
-        if (title.equals(LanguageGUI.TITLE) || title.equals(LifeGUI.TITLE)) e.setCancelled(true);
+        if (
+                title.equals(LanguageGUI.TITLE) ||
+                title.equals(LifeGUI.TITLE) ||
+                title.equals(ModeGUI.TITLE) ||
+                title.equals(MarketplaceGUI.TITLE)
+        ) e.setCancelled(true);
 
         if (title.equals(LanguageGUI.TITLE)) {
-            if (e.getCurrentItem() == null || e.getCurrentItem().getItemMeta() == null) return;
+            if (e.getCurrentItem() == null) return;
             String lang = e.getCurrentItem().getItemMeta().getDisplayName().toLowerCase();
             langManager.setLanguage(p.getUniqueId(), lang);
-            p.sendMessage("§aLanguage set to " + lang);
-            LanguageGUI.open(p);
+            p.sendMessage("§aLanguage gesetzt: " + lang);
         }
 
         if (title.equals(LifeGUI.TITLE)) {
             int lives = getConfig().getInt("lives." + p.getUniqueId(), 3);
-            if (e.getSlot() == 11) lives++;
-            if (e.getSlot() == 15) lives--;
-            if (lives < 0) lives = 0;
+
+            if (!p.hasPermission("life.admin")) {
+                p.sendMessage("§cKeine Rechte!");
+                return;
+            }
+
+            if (e.getSlot() == 11 && lives < 10) lives++;
+            if (e.getSlot() == 15 && lives > 0) lives--;
 
             getConfig().set("lives." + p.getUniqueId(), lives);
             saveConfig();
+
             LifeGUI.open(p);
         }
     }
@@ -87,6 +101,16 @@ public class Main extends JavaPlugin implements Listener {
 
         if (cmd.getName().equalsIgnoreCase("langgui")) {
             LanguageGUI.open(p);
+            return true;
+        }
+
+        if (cmd.getName().equalsIgnoreCase("modegui")) {
+            ModeGUI.open(p);
+            return true;
+        }
+
+        if (cmd.getName().equalsIgnoreCase("market")) {
+            MarketplaceGUI.open(p);
             return true;
         }
 
