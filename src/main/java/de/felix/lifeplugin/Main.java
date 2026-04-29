@@ -2,6 +2,7 @@ package de.felix.lifeplugin;
 
 import de.felix.lifeplugin.gui.*;
 import de.felix.lifeplugin.lang.LanguageManager;
+import net.kyori.adventure.text.Component;
 import org.bukkit.*;
 import org.bukkit.command.*;
 import org.bukkit.entity.Player;
@@ -32,23 +33,17 @@ public class Main extends JavaPlugin implements Listener {
         Bukkit.getScheduler().runTaskTimer(this, () -> {
             for (Player p : Bukkit.getOnlinePlayers()) {
                 int lives = getConfig().getInt("lives." + p.getUniqueId(), 3);
-                p.sendActionBar("§cLives: " + lives);
+                p.sendActionBar(Component.text("§cLives: " + lives));
             }
         }, 0, 40);
     }
 
     @EventHandler
     public void onClick(InventoryClickEvent e) {
-
         if (!(e.getWhoClicked() instanceof Player p)) return;
         String title = e.getView().getTitle();
 
-        if (
-                title.equals(LanguageGUI.TITLE) ||
-                title.equals(LifeGUI.TITLE) ||
-                title.equals(ModeGUI.TITLE) ||
-                title.equals(MarketplaceGUI.TITLE)
-        ) e.setCancelled(true);
+        if (title.equals(LanguageGUI.TITLE) || title.equals(LifeGUI.TITLE)) e.setCancelled(true);
 
         if (title.equals(LanguageGUI.TITLE)) {
             if (e.getCurrentItem() == null) return;
@@ -101,16 +96,6 @@ public class Main extends JavaPlugin implements Listener {
 
         if (cmd.getName().equalsIgnoreCase("langgui")) {
             LanguageGUI.open(p);
-            return true;
-        }
-
-        if (cmd.getName().equalsIgnoreCase("modegui")) {
-            ModeGUI.open(p);
-            return true;
-        }
-
-        if (cmd.getName().equalsIgnoreCase("market")) {
-            MarketplaceGUI.open(p);
             return true;
         }
 
