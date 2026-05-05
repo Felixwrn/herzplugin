@@ -1,27 +1,18 @@
 package de.felix.lifeplugin;
 
-import de.wrn.api.api.WRNAPI;
-import de.wrn.api.api.PlaceholderAPI;
-import org.bukkit.command.*;
-import org.bukkit.entity.Player;
 import org.bukkit.plugin.java.JavaPlugin;
 
 public class Main extends JavaPlugin {
 
+    private static Main instance;
+
+    public static Main getInstance() {
+        return instance;
+    }
+
     @Override
-    public boolean onCommand(CommandSender sender, Command cmd, String label, String[] args) {
-
-        if (!(sender instanceof Player p)) return true;
-
-        if (cmd.getName().equalsIgnoreCase("test")) {
-
-            var ph = PlaceholderAPI.create();
-            PlaceholderAPI.add(ph, "player", p.getName());
-
-            p.sendMessage(WRNAPI.text(p.getUniqueId(), "Hallo {player}", ph));
-            return true;
-        }
-
-        return false;
+    public void onEnable() {
+        instance = this;
+        getLogger().info("LifePlugin gestartet!");
     }
 }
