@@ -10,19 +10,30 @@ commands:
   livesgui:
     description: Öffnet das Lives GUI
     usage: /livesgui
+      aliases:
+        -lives
+        -leben
+        -life
 
   langgui:
     description: Öffnet das Language GUI
     usage: /langgui
+      aliases:
+        -lang
+        -language
+        -langs
 
   modegui:
     description: Öffnet das Mode GUI
     usage: /modegui
+    aliases:
+      - mode
+      -modes
 
   market:
     description: Öffnet den Marketplace
     usage: /market
-  test:
+  
 
 permissions:
   life.admin:
