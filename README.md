@@ -60,20 +60,51 @@ A modern, lightweight and highly customizable **Minecraft 1.21.x life system plu
 Example `config.yml`:
 
 ```yml
-mode: LIFESTEAL
+# =========================
+# WRN LifePlugin Config
+# =========================
 
-start-lives: 10
+# Standard Leben (für neue Spieler)
+default-lives: 3
 
-storage:
-  type: FILE # or MYSQL
+# Maximale Leben (für GUI Limit)
+max-lives: 10
 
-mysql:
-  host: localhost
-  port: 3306
-  database: lifedb
-  user: root
-  password: password
+# =========================
+# MODE SYSTEM
+# =========================
+mode:
+  name: "Normal"
+  lives: 3
+  banOnZero: false
 
-lifesteal:
-  steal-amount: 1
-  max-lives: 20
+# =========================
+# MARKETPLACE MODES
+# =========================
+marketplace:
+  hardcore:
+    name: "Hardcore"
+    lives: 1
+    banOnZero: true
+
+  pro:
+    name: "Pro"
+    lives: 5
+    banOnZero: false
+
+  vanilla_plus:
+    name: "Vanilla+"
+    lives: 3
+    banOnZero: false
+
+# =========================
+# PLAYER DATA (AUTO)
+# =========================
+lives: {}
+
+# =========================
+# SETTINGS
+# =========================
+settings:
+  actionbar: true
+  update-interval: 40  # ticks (20 = 1 Sekunde)
