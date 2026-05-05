@@ -11,24 +11,24 @@ commands:
     description: Öffnet das Lives GUI
     usage: /livesgui
       aliases:
-        -lives
-        -leben
-        -life
+        - lives
+        - leben
+        - life
 
   langgui:
     description: Öffnet das Language GUI
     usage: /langgui
       aliases:
-        -lang
-        -language
-        -langs
+        - lang
+        - language
+        - langs
 
   modegui:
     description: Öffnet das Mode GUI
     usage: /modegui
     aliases:
       - mode
-      -modes
+      - modes
 
   market:
     description: Öffnet den Marketplace
