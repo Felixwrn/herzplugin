@@ -1,39 +1,25 @@
-name: Build & Send Plugin
+name: Build Plugin
 
-on:
-  push:
-    branches: [ "main" ]
+on: [push]
 
 jobs:
   build:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v3
 
-      - name: Setup Java
-        uses: actions/setup-java@v4
+      - name: Set up Java
+        uses: actions/setup-java@v3
         with:
-          java-version: '17'
           distribution: 'temurin'
+          java-version: '21'
 
-      - name: Build Plugin
+      - name: Build with Maven
         run: mvn clean package
 
-      # 🔥 Debug (optional, zeigt dir die Datei)
-      - name: List files
-        run: ls target
-
-      - name: Send Email
-        uses: dawidd6/action-send-mail@v3
+      - name: Upload JAR Artifact
+        uses: actions/upload-artifact@v4
         with:
-          server_address: smtp.gmail.com
-          server_port: 587
-          username: ${{ wenzelfelix28@gmail.com }}
-          password: ${{ hvnkshfdrtgkrsxa }}
-          subject: "WRN LifePlugin Build"
-          to: ${{ wenzelfelix28@gmail.com }}
-          from: WRN Build <${{ wenzelfelix28@gmail.com }}>
-          body: "Dein Plugin wurde erfolgreich gebaut 🚀"
-          attachments: target/*.jar
+          name: lifecore
+          path: target/*.jar
